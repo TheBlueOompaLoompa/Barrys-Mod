@@ -1,0 +1,137 @@
+[gd_scene load_steps=11 format=3 uid="uid://ddidbtgjgub3w"]
+
+[ext_resource type="Script" uid="uid://dx51gy07crqq8" path="res://scripts/MainMenu.gd" id="3_q6kfv"]
+[ext_resource type="Script" uid="uid://dlb7r1qoi4di4" path="res://scripts/Mods.gd" id="3_tc4s0"]
+[ext_resource type="Script" uid="uid://bshr35hhl8leq" path="res://scripts/Multiplayer.gd" id="4_flblk"]
+[ext_resource type="Script" uid="uid://dwprwr4bdnfy1" path="res://scripts/ModMenu.gd" id="4_qsro8"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_wl3b3"]
+size = Vector2(20, 20)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_g7hja"]
+size = Vector3(20, 0.01, 20)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_qofnv"]
+sky_top_color = Color(0.321569, 0.439216, 0.698039, 1)
+sky_horizon_color = Color(0.603922, 0.658824, 0.756863, 1)
+
+[sub_resource type="Sky" id="Sky_2ekex"]
+sky_material = SubResource("ProceduralSkyMaterial_qofnv")
+
+[sub_resource type="Environment" id="Environment_tynm3"]
+background_mode = 2
+sky = SubResource("Sky_2ekex")
+tonemap_mode = 3
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.004
+
+[sub_resource type="CameraAttributesPhysical" id="CameraAttributesPhysical_6ba6e"]
+
+[node name="Game" type="Node3D"]
+
+[node name="PlayerSpawner" type="MultiplayerSpawner" parent="."]
+unique_name_in_owner = true
+_spawnable_scenes = PackedStringArray("uid://dfw4621s76jqi")
+spawn_path = NodePath("../Players")
+
+[node name="PropSpawner" type="MultiplayerSpawner" parent="."]
+unique_name_in_owner = true
+spawn_path = NodePath("../Mods/Props")
+
+[node name="Players" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D"]
+mesh = SubResource("PlaneMesh_wl3b3")
+skeleton = NodePath("../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = SubResource("BoxShape3D_g7hja")
+
+[node name="MainMenu" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_q6kfv")
+
+[node name="Net" type="CenterContainer" parent="MainMenu"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Options" type="VBoxContainer" parent="MainMenu/Net"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="Host" type="Button" parent="MainMenu/Net/Options"]
+layout_mode = 2
+focus_neighbor_top = NodePath("../Remote")
+focus_neighbor_bottom = NodePath("../Connect")
+text = "Host"
+
+[node name="Connect" type="Button" parent="MainMenu/Net/Options"]
+layout_mode = 2
+focus_neighbor_top = NodePath("../Host")
+focus_neighbor_bottom = NodePath("../Remote")
+text = "Connect"
+
+[node name="Remote" type="LineEdit" parent="MainMenu/Net/Options"]
+layout_mode = 2
+focus_neighbor_top = NodePath("../Connect")
+focus_neighbor_bottom = NodePath("../Host")
+placeholder_text = "127.0.0.1"
+
+[node name="Multiplayer" type="Node" parent="."]
+script = ExtResource("4_flblk")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_tynm3")
+camera_attributes = SubResource("CameraAttributesPhysical_6ba6e")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment"]
+transform = Transform3D(0.795991, -0.56988, -0.204046, 0, -0.337095, 0.941471, -0.605308, -0.749403, -0.268325, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Mods" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("3_tc4s0")
+
+[node name="ModMenu" type="Control" parent="Mods"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("4_qsro8")
+
+[node name="Tabs" type="TabContainer" parent="Mods/ModMenu"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+current_tab = 0
+
+[node name="Props" type="HBoxContainer" parent="Mods/ModMenu/Tabs"]
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="Props" type="HFlowContainer" parent="Mods/ModMenu/Tabs/Props"]
+layout_mode = 2
+
+[node name="Props" type="Node3D" parent="Mods"]
+
+[connection signal="pressed" from="MainMenu/Net/Options/Host" to="Multiplayer" method="_on_host_button_pressed"]
+[connection signal="pressed" from="MainMenu/Net/Options/Connect" to="Multiplayer" method="_on_join_button_pressed"]
