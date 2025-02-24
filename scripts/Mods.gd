@@ -12,6 +12,8 @@ func toggle_mod_menu():
 
 var props = {}
 
+var user_mods = []
+
 func load_mods():
     if not ResourceLoader.exists("user://mods"):
         DirAccess.make_dir_absolute("user://mods")
@@ -31,20 +33,30 @@ func load_mods():
             load_mod(folder, mod_config)
 
 func load_mod(path: String, config: ConfigFile):
-    var name = config.get_value("info", "name")
+    var mod_name = config.get_value("info", "name")
+    if path.begins_with("user://"):
+        var mod_id = config.get_value("info", "uuid")
+        user_mods.append([mod_id, path])
+    
     var t_props = config.get_value("parts", "props")
     if t_props != null:
-        props[name] = []
+        props[mod_name] = []
         
         for prop in t_props:
-            props[name].push_back(prop[0])
+            props[mod_name].push_back(prop[0])
             if len(prop) > 1:
                 $ModMenu.add_prop(prop[1], path + prop[0])
             else:
                 $ModMenu.add_prop(prop[0], path + prop[0])
                 
             %PropSpawner.add_spawnable_scene(path + prop[0])
-    
+
+func send_mod_list(new_peer: int):
+    if multiplayer.is_server():
+        rpc_id(new_peer, "_send_mod_list", user_mods)
+
+@rpc("authority", "reliable")
+func _send_mod_list(mods: Array[Array[String]]):
 
 #func open_mod(path):
 #	var result : Node = null
