@@ -21,6 +21,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 DevkitMessenger="*res://addons/steam_devkit_notifier/devkit_messenger.gd"
+GDInternal_ResourceGroup="*res://addons/gd_/./GDInternal_ResourceGroup.tscn"
 
 [display]
 
@@ -32,7 +33,7 @@ project/assembly_name="Barry-s Mod"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/script-ide/plugin.cfg", "res://addons/steam_devkit_notifier/plugin.cfg")
+enabled=PackedStringArray("res://addons/gd_/plugin.cfg", "res://addons/script-ide/plugin.cfg", "res://addons/steam_devkit_notifier/plugin.cfg")
 
 [input]
 

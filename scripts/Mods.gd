@@ -56,7 +56,9 @@ func send_mod_list(new_peer: int):
         rpc_id(new_peer, "_send_mod_list", user_mods)
 
 @rpc("authority", "reliable")
-func _send_mod_list(mods: Array[Array[String]]):
+func _send_mod_list(mods: Array[Variant]):
+    for mod in mods:
+        GD_.difference()
 
 #func open_mod(path):
 #	var result : Node = null
