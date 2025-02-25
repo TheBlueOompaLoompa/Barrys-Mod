@@ -30,6 +30,7 @@ func add_player(peer_id):
     var player = Player.instantiate()
     player.name = str(peer_id)
     player.position = Vector3(0, 1, 0)
+    %Mods.send_mod_list(peer_id)
     %Players.add_child(player)
     
 func remove_player(peer_id):

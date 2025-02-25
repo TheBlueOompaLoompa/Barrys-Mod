@@ -33,6 +33,7 @@ func load_mods():
             load_mod(folder, mod_config)
 
 func load_mod(path: String, config: ConfigFile):
+    print(path)
     var mod_name = config.get_value("info", "name")
     if path.begins_with("user://"):
         var mod_id = config.get_value("info", "uuid")
@@ -52,13 +53,46 @@ func load_mod(path: String, config: ConfigFile):
             %PropSpawner.add_spawnable_scene(path + prop[0])
 
 func send_mod_list(new_peer: int):
-    if multiplayer.is_server():
-        rpc_id(new_peer, "_send_mod_list", user_mods)
+    if multiplayer.is_server() and new_peer != 1:
+        rpc_id(new_peer, "_compare_server_mods", user_mods)
 
 @rpc("authority", "reliable")
-func _send_mod_list(mods: Array[Variant]):
-    for mod in mods:
-        GD_.difference()
+func _compare_server_mods(mods: Array[Variant]):
+    var missing_mods = GD_.intersection(GD_.difference(mods, user_mods), mods)
+    print(mods)
+    if len(missing_mods) > 0:
+        rpc_id(1, "_request_mods", missing_mods)
+
+func pack_folder(pack_name: String, path: String):
+    var packer = PCKPacker.new()
+    packer.pck_start(pack_name + ".pck")
+    _pack_folder(packer, path)
+    packer.flush()
+    
+    return pack_name + ".pck"
+
+func _pack_folder(packer: PCKPacker, path: String):
+    for file in DirAccess.get_files_at(path):
+        packer.add_file(path.replace("user://", "res://")+'/'+file, path+'/'+file)
+    for dir in DirAccess.get_directories_at(path):
+        _pack_folder(packer, path+'/'+dir)
+
+@rpc("any_peer", "reliable")
+func _request_mods(mods: Array[Variant]):
+    if multiplayer.get_unique_id() == 1:
+        for mod in mods:
+            var found: Variant = GD_.find(user_mods, func(m): m[0] == mod[0])
+            if found == null:
+                continue
+                
+            var pack_path = pack_folder(found[0], found[1])
+            var bytes = FileAccess.get_file_as_bytes(pack_path)
+            rpc_id(multiplayer.get_remote_sender_id(), "_recv_mod", bytes)
+        
+
+@rpc("authority", "reliable")
+func _recv_mod(data: PackedByteArray):
+    print(data)
 
 #func open_mod(path):
 #	var result : Node = null
